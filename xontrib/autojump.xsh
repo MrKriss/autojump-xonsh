@@ -2,6 +2,7 @@ def _autojump_xonsh():
     '''Wrapper function to avoid polluting shell name space when this file is
     sourced'''
     import os
+    from pathlib import Path
     import platform
     from subprocess import call, check_output, DEVNULL
     import sys
@@ -10,8 +11,9 @@ def _autojump_xonsh():
 
     # set error file location
     if platform.system() == "Darwin":
-        $AUTOJUMP_ERROR_PATH = os.path.join($HOME,
-                                            "Library/autojump/errors.log")
+    elif platform.system() == 'Windows':
+        home = Path($USERPROFILE)
+        $AUTOJUMP_ERROR_PATH = str(home / "AppData/Local/autojump/errors.log")
     elif "XDG_DATA_HOME" in __xonsh__.env:
         $AUTOJUMP_ERROR_PATH = os.path.join($XDG_DATA_HOME,
                                             "autojump/errors.log")
@@ -70,6 +72,8 @@ def _autojump_xonsh():
                 call(['xdg-open', output])
             elif system == 'Darwin':
                 call(['open', output])
+            elif system == 'Windows':
+                call(['explorer', output])
             elif system.lower().startswith('cygwin'):
                 path = check_output(['cygpath', '-w', '-a', output],
                                     universal_newlines=True).strip()
@@ -106,7 +110,7 @@ def _autojump_xonsh():
         a=!(autojump --complete @(line[firstSpace+1:].split(' ')))
         return set([e for e in a.out.split('\n') if e != ''])
 
-    if !(completer list|grep autojump):
+    if 'autojump' in !(completer list):
         completer remove autojump
 
     completer add autojump completions start
