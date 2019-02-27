@@ -11,12 +11,14 @@ def _autojump_xonsh():
 
     # set error file location
     if platform.system() == "Darwin":
+        home = Path($HOME)
+        $AUTOJUMP_ERROR_PATH = str(home / "Library/autojump/errors.log")
     elif platform.system() == 'Windows':
         home = Path($USERPROFILE)
         $AUTOJUMP_ERROR_PATH = str(home / "AppData/Local/autojump/errors.log")
     elif "XDG_DATA_HOME" in __xonsh__.env:
-        $AUTOJUMP_ERROR_PATH = os.path.join($XDG_DATA_HOME,
-                                            "autojump/errors.log")
+        home = Path($XDG_DATA_HOME)
+        $AUTOJUMP_ERROR_PATH = str(home / "autojump/errors.log")
     else:
         $AUTOJUMP_ERROR_PATH = os.path.join($HOME,
                                             ".local/share/autojump/errors.log")
@@ -26,6 +28,12 @@ def _autojump_xonsh():
 
     @events.on_chdir
     def autojump_add_to_database(olddir, newdir, **kwargs):
+        olddir = Path(olddir)
+        newdir = Path(newdir).resolve()
+        autojump_error_path = Path($AUTOJUMP_ERROR_PATH[0])
+        if autojump_error_path.parent.exists():
+            with autojump_error_path.open('w+') as f:
+                call(['autojump', '--add', str(newdir)],
                      stderr=f, stdout=DEVNULL, shell=True)
         else:
             call(['autojump', '--add', str(newdir)], stdout=DEVNULL, stderr=DEVNULL, shell=True)
