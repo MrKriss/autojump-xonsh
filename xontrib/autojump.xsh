@@ -26,23 +26,20 @@ def _autojump_xonsh():
 
     @events.on_chdir
     def autojump_add_to_database(olddir, newdir, **kwargs):
-        if os.path.exists(os.path.dirname($AUTOJUMP_ERROR_PATH[0])):
-            with open($AUTOJUMP_ERROR_PATH[0], 'w+') as f:
-                call(['autojump', '--add', os.path.abspath(newdir)],
-                     stderr=f, stdout=DEVNULL)
+                     stderr=f, stdout=DEVNULL, shell=True)
         else:
-            call(['autojump', '--add', os.path.abspath(newdir)], stdout=DEVNULL, stderr=DEVNULL)
+            call(['autojump', '--add', str(newdir)], stdout=DEVNULL, stderr=DEVNULL, shell=True)
 
     if 'AUTOJUMP_PRINT_DIR' not in ${...}:
         $AUTOJUMP_PRINT_DIR = False
 
     def j(args, stdin=None):
         if args and args[0][0] == '-' and args[0] != '--':
-            call(['autojump'] + args)
+            call(['autojump'] + args, shell=True)
             return
 
         output = check_output(['autojump'] + args,
-                              universal_newlines=True).strip()
+                              universal_newlines=True, shell=True).strip()
         if os.path.isdir(output):
             if $AUTOJUMP_PRINT_DIR:
                 print(output)
@@ -54,14 +51,14 @@ def _autojump_xonsh():
 
     def jc(args, stdin=None):
         if args and args[0][0] == '-' and args[0] != '--':
-            call(['autojump'] + args)
+            call(['autojump'] + args, shell=True)
             return
         else:
             j([os.path.abspath(os.curdir)] + args)
 
     def jo(args, stdin=None):
         if args and args[0][0] == '-' and args[0] != '--':
-            call(['autojump'] + args)
+            call(['autojump'] + args, shell=True)
             return
 
         output = check_output(['autojump'] + args,
